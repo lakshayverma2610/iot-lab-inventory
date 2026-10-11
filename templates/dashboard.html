@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard | IoT Lab Operations{% endblock %}
+{% block title %}Admin Dashboard | IoT Lab Operations{% endblock %}
+{% block header_title %}Admin Control Center{% endblock %}
+{% block header_subtitle %}Complete laboratory telemetry, asset distribution, and loan ledger management{% endblock %}
 
 {% block content %}
 
 <div class="page-heading">
     <div>
-        <p class="eyebrow">TELEMETRY & ASSET METRICS</p>
-        <h2>Operations Overview</h2>
-        <p class="muted">Live status of physical laboratory inventory, active student loans, and maintenance items.</p>
+        <p class="eyebrow">ADMINISTRATIVE TELEMETRY</p>
+        <h2>Inventory & Custody Overview</h2>
+        <p class="muted">Live overview of bench components, student checkouts, and overdue asset reconciliations.</p>
     </div>
 
     <div style="display: flex; gap: 8px;">
@@ -18,7 +20,7 @@
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            Export Active Loans CSV
+            Export Loans CSV
         </a>
         <a href="{{ url_for('issue') }}" class="button primary">
             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -32,12 +34,12 @@
 
 <div class="lab-ops-banner">
     <div>
-        <h3>Bench Stock & Custody Reconciliation</h3>
-        <p>Lab Room 402 • Operational hours 08:30 – 17:30 Mon-Fri. Equipment loans require student ID verification.</p>
+        <h3>Room 402 Hardware Operations & Bench Audit</h3>
+        <p>Lab hours 08:30 – 17:30 Mon-Fri. Equipment checkouts require student ID badge verification.</p>
     </div>
     <div class="ops-meta">
-        <div>BENCH AUDIT: ACTIVE</div>
-        <div>STATION #01 READY</div>
+        <div>LEDGER: ACTIVE</div>
+        <div>BENCH #01 VERIFIED</div>
     </div>
 </div>
 
@@ -45,7 +47,7 @@
 
     <div class="stat-card stat-blue">
         <div class="stat-top">
-            <span>Total Lab Units</span>
+            <span>Total Cataloged Units</span>
             <span class="stat-icon">
                 <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
                     <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
@@ -54,7 +56,7 @@
             </span>
         </div>
         <h3>{{ total_devices }}</h3>
-        <p>Cataloged hardware components</p>
+        <p>Across {{ catalog_count }} component categories</p>
     </div>
 
     <div class="stat-card stat-green">
@@ -67,7 +69,7 @@
             </span>
         </div>
         <h3>{{ available_devices }}</h3>
-        <p>Ready for bench issue</p>
+        <p>Ready for bench checkout</p>
     </div>
 
     <div class="stat-card stat-orange">
@@ -81,7 +83,7 @@
             </span>
         </div>
         <h3>{{ issued_devices }}</h3>
-        <p>Currently on project loan</p>
+        <p>Across {{ active_loans_count }} active project loans</p>
     </div>
 
     <div class="stat-card stat-red">
@@ -96,30 +98,30 @@
             </span>
         </div>
         <h3>{{ overdue_count }}</h3>
-        <p>Past return deadline</p>
+        <p>Past mandatory return deadline</p>
     </div>
 
 </div>
 
-<!-- Low Stock Alerts Section (If any) -->
+<!-- Low Stock Alerts Section -->
 {% if low_stock_devices %}
 <div class="card" style="border-left: 3px solid var(--status-warning);">
     <div class="card-heading">
         <div>
             <h3 style="color: var(--status-warning);">Reorder & Restock Advisory</h3>
-            <p>Equipment with 2 or fewer available units remaining on the bench.</p>
+            <p>Components with critical stock (2 or fewer units available on shelf).</p>
         </div>
-        <span class="badge warning">{{ low_stock_devices|length }} Item(s) Low</span>
+        <span class="badge warning">{{ low_stock_devices|length }} Item(s) Critical</span>
     </div>
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th>Item Code</th>
+                    <th>Item SKU</th>
                     <th>Component Name</th>
                     <th>Category</th>
                     <th>Available / Total</th>
-                    <th>Storage Shelf</th>
+                    <th>Bench Location</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -136,7 +138,7 @@
                     </td>
                     <td>{{ dev.location }}</td>
                     <td>
-                        <a href="{{ url_for('devices') }}?search={{ dev.device_code }}" class="btn btn-secondary btn-sm">
+                        <a href="{{ url_for('devices') }}?search={{ dev.device_code }}" class="button secondary btn-sm">
                             Inspect
                         </a>
                     </td>
@@ -150,8 +152,8 @@
 
 <div class="section-heading">
     <div>
-        <h3>Recent Custody Transactions</h3>
-        <p class="muted">Most recent equipment check-outs and returns.</p>
+        <h3>Active Custody Transactions</h3>
+        <p class="muted">Live status of current equipment loans, custodians, and return reconciliations.</p>
     </div>
 
     <a href="{{ url_for('transactions') }}" class="text-link">
@@ -172,6 +174,7 @@
                     <th>Issued On</th>
                     <th>Return Due</th>
                     <th>Status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
 
@@ -181,7 +184,7 @@
                     <td><span class="device-code">#TX-{{ transaction.id }}</span></td>
                     <td>
                         <strong>{{ transaction.student.name }}</strong>
-                        <small class="table-subtitle">ID: {{ transaction.student.student_id }}</small>
+                        <small class="table-subtitle">ID: {{ transaction.student.student_id }} • {{ transaction.student.department }}</small>
                     </td>
 
                     <td>
@@ -189,12 +192,12 @@
                         <small class="table-subtitle">{{ transaction.device.device_code }}</small>
                     </td>
 
-                    <td>{{ transaction.quantity }}</td>
+                    <td><strong>{{ transaction.quantity }}</strong></td>
                     <td>{{ transaction.issue_date.strftime('%d-%m-%Y') }}</td>
                     <td>
                         {{ transaction.due_date.strftime('%d-%m-%Y') }}
                         {% if transaction.status == 'Issued' and transaction.due_date < today %}
-                            <span class="badge danger">Overdue</span>
+                            <span class="badge danger" style="margin-left: 4px;">Overdue</span>
                         {% endif %}
                     </td>
 
@@ -203,6 +206,23 @@
                             <span class="badge warning">With Student</span>
                         {% else %}
                             <span class="badge success">Restocked</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if transaction.status == 'Issued' %}
+                        <form
+                            method="POST"
+                            action="{{ url_for('return_device', transaction_id=transaction.id) }}"
+                            onsubmit="return confirm('Confirm receipt and inspection of returned hardware?');"
+                            style="margin: 0;"
+                        >
+                            <button type="submit" class="btn btn-success btn-sm">
+                                Check-in
+                            </button>
+                        </form>
+                        {% else %}
+                            <span style="font-size: 11.5px; color: var(--text-muted);">Verified In Bench</span>
                         {% endif %}
                     </td>
                 </tr>

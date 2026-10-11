@@ -210,6 +210,8 @@ def dashboard():
         overdue_count=len(overdue_transactions),
         recent_transactions=recent_transactions,
         low_stock_devices=low_stock_devices,
+        catalog_count=len(devices),
+        active_loans_count=len(active_transactions),
         today=date.today(),
     )
 
@@ -641,6 +643,71 @@ def return_device(transaction_id):
         )
 
     return redirect(url_for("transactions"))
+
+
+# ==========================================
+# STUDENT PORTAL & SELF-SERVICE
+# ==========================================
+
+@app.route("/student-portal")
+def student_portal():
+    student_id_param = request.args.get("student_id", "").strip()
+    category_param = request.args.get("category", "").strip()
+    search = request.args.get("search", "").strip()
+
+    all_students = db.session.scalars(
+        select(Student).order_by(Student.name)
+    ).all()
+
+    # Hardware devices catalog query
+    query = select(Device).order_by(Device.name)
+    if category_param:
+        query = query.where(Device.category == category_param)
+    if search:
+        query = query.where(
+            or_(
+                Device.name.ilike(f"%{search}%"),
+                Device.device_code.ilike(f"%{search}%"),
+                Device.category.ilike(f"%{search}%"),
+            )
+        )
+    devices = db.session.scalars(query).all()
+
+    # Distinct categories for filter tabs
+    all_devices = db.session.scalars(select(Device)).all()
+    categories = sorted(list({d.category for d in all_devices}))
+
+    # If student is selected, retrieve their active loans
+    selected_student = None
+    student_active_loans = []
+    if student_id_param:
+        try:
+            s_id = int(student_id_param)
+            selected_student = db.session.get(Student, s_id)
+            if selected_student:
+                student_active_loans = db.session.scalars(
+                    select(Transaction)
+                    .join(Transaction.device)
+                    .where(
+                        Transaction.student_id == selected_student.id,
+                        Transaction.status == "Issued",
+                    )
+                    .order_by(Transaction.due_date.asc())
+                ).all()
+        except (ValueError, TypeError):
+            pass
+
+    return render_template(
+        "student_portal.html",
+        devices=devices,
+        categories=categories,
+        current_category=category_param,
+        search=search,
+        all_students=all_students,
+        selected_student=selected_student,
+        student_active_loans=student_active_loans,
+        today=date.today(),
+    )
 
 
 # ==========================================

@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Student Equipment Portal | IoT Lab{% endblock %}
+{% block header_title %}Student Equipment Portal{% endblock %}
+{% block header_subtitle %}Check real-time hardware stock, bench locations, and your active equipment return deadlines{% endblock %}
+
+{% block content %}
+
+<!-- Student Identification & Active Loan Lookup -->
+<div class="card" style="border-left: 3px solid var(--status-success);">
+    <div class="card-heading">
+        <div>
+            <h3>My Active Borrowed Equipment & Due Dates</h3>
+            <p>Select your registered Student ID to view your currently checked-out hardware and return deadlines.</p>
+        </div>
+        <span class="badge success">Student Self-Service</span>
+    </div>
+
+    <form method="GET" action="{{ url_for('student_portal') }}" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="field" style="margin: 0; min-width: 280px; flex: 1;">
+            <label for="student_id_select">Select Your Student Profile</label>
+            <select id="student_id_select" name="student_id" onchange="this.form.submit()">
+                <option value="">-- Choose Student ID to check your loans --</option>
+                {% for s in all_students %}
+                <option value="{{ s.id }}" {% if selected_student and selected_student.id == s.id %}selected{% endif %}>
+                    [{{ s.student_id }}] {{ s.name }} ({{ s.department }} - Sem {{ s.semester }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="button primary">
+            Lookup My Loans
+        </button>
+
+        {% if selected_student %}
+        <a href="{{ url_for('student_portal') }}" class="button secondary">
+            Reset Selection
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- Display Active Loans for Selected Student -->
+    {% if selected_student %}
+    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+                <strong style="color: #FFFFFF; font-size: 14px;">{{ selected_student.name }}</strong>
+                <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">(Roll No: {{ selected_student.student_id }})</span>
+            </div>
+            <span class="record-count">{{ student_active_loans|length }} Active Loan(s)</span>
+        </div>
+
+        {% if student_active_loans %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Asset Code</th>
+                        <th>Borrowed Component</th>
+                        <th>Qty</th>
+                        <th>Issued On</th>
+                        <th>Return Deadline</th>
+                        <th>Remaining Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in student_active_loans %}
+                    {% set days_left = (loan.due_date - today).days %}
+                    <tr>
+                        <td><span class="device-code">{{ loan.device.device_code }}</span></td>
+                        <td>
+                            <strong>{{ loan.device.name }}</strong>
+                            <small class="table-subtitle">{{ loan.device.category }} • Bench: {{ loan.device.location }}</small>
+                        </td>
+                        <td><strong>{{ loan.quantity }} unit(s)</strong></td>
+                        <td>{{ loan.issue_date.strftime('%d-%m-%Y') }}</td>
+                        <td>
+                            <strong>{{ loan.due_date.strftime('%d-%m-%Y') }}</strong>
+                        </td>
+                        <td>
+                            {% if days_left < 0 %}
+                                <span class="due-badge overdue">
+                                    OVERDUE ({{ days_left|abs }} days past due)
+                                </span>
+                            {% elif days_left == 0 %}
+                                <span class="due-badge urgent">
+                                    DUE TODAY
+                                </span>
+                            {% elif days_left <= 2 %}
+                                <span class="due-badge urgent">
+                                    Due in {{ days_left }} day(s)
+                                </span>
+                            {% else %}
+                                <span class="due-badge normal">
+                                    {{ days_left }} days remaining
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if days_left < 0 %}
+                                <span class="badge danger">Overdue Action Required</span>
+                            {% else %}
+                                <span class="badge warning">Active Loan</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="info-box" style="margin-top: 14px;">
+            <strong>Return Instructions</strong>
+            <p>Please return equipment to Room 402 during operational hours (08:30 – 17:30). Ensure antistatic packaging is intact.</p>
+        </div>
+        {% else %}
+        <div style="background-color: var(--bg-surface-elevated); padding: 16px; border-radius: var(--radius-sm); text-align: center; color: var(--text-secondary);">
+            ✓ You have no active equipment loans outstanding. All previously borrowed items have been cleared!
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Real-time Equipment Stock & Catalog Directory -->
+<div class="section-heading" style="margin-top: 10px;">
+    <div>
+        <h3>Laboratory Hardware Availability Catalog</h3>
+        <p class="muted">Live status of microcontrollers, sensor modules, wireless radios, and prototyping components.</p>
+    </div>
+
+    <!-- Quick Category Filter -->
+    <div class="filter-tabs">
+        <a href="{{ url_for('student_portal') }}" class="filter-tab {% if not current_category and not search %}active{% endif %}">
+            All Hardware
+        </a>
+        {% for cat in categories %}
+        <a href="{{ url_for('student_portal', category=cat) }}" class="filter-tab {% if current_category == cat %}active{% endif %}">
+            {{ cat }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card" style="padding: 14px 18px; margin-bottom: 16px;">
+    <form method="GET" action="{{ url_for('student_portal') }}" class="search-form" style="max-width: 100%;">
+        {% if current_category %}
+        <input type="hidden" name="category" value="{{ current_category }}">
+        {% endif %}
+        <input
+            type="text"
+            name="search"
+            placeholder="Search by part name, SKU code (e.g. ESP32, BME280, LoRa)..."
+            value="{{ search }}"
+            style="flex: 1;"
+        >
+        <button type="submit" class="button primary">
+            Check Availability
+        </button>
+        {% if search or current_category %}
+        <a href="{{ url_for('student_portal') }}" class="button secondary">
+            Clear Filters
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="table-card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item SKU</th>
+                    <th>Component Name</th>
+                    <th>Category</th>
+                    <th>Available to Borrow</th>
+                    <th>Total Lab Stock</th>
+                    <th>Bench / Storage Location</th>
+                    <th>Current Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in devices %}
+                <tr>
+                    <td><span class="device-code">{{ device.device_code }}</span></td>
+                    <td>
+                        <strong>{{ device.name }}</strong>
+                    </td>
+                    <td>{{ device.category }}</td>
+                    <td>
+                        <strong style="color: {% if device.available_quantity == 0 %}var(--status-danger){% elif device.available_quantity <= 3 %}var(--status-warning){% else %}var(--status-success){% endif %}; font-size: 14px;">
+                            {{ device.available_quantity }}
+                        </strong>
+                        <span style="color: var(--text-muted); font-size: 11px;">units</span>
+                    </td>
+                    <td>{{ device.total_quantity }}</td>
+                    <td>
+                        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-secondary);">
+                            {{ device.location }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if device.available_quantity == 0 %}
+                            <span class="badge danger">Out of Stock</span>
+                        {% elif device.available_quantity <= 3 %}
+                            <span class="badge warning">Low Stock ({{ device.available_quantity }} left)</span>
+                        {% else %}
+                            <span class="badge success">Available</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
+                        <p>No hardware components matched your search criteria.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Laboratory Borrowing Rules for Students -->
+<div class="card" style="margin-top: 20px;">
+    <div class="card-heading">
+        <h3>Borrowing Rules & Lab Protocols</h3>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; font-size: 12.5px; color: var(--text-secondary);">
+        <div style="background-color: var(--bg-surface-elevated); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 2px solid var(--accent-blue);">
+            <strong style="color: #FFFFFF; display: block; margin-bottom: 4px;">1. Maximum Loan Period</strong>
+            All student component loans are valid for 14 calendar days. Overdue items block further checkouts.
+        </div>
+        <div style="background-color: var(--bg-surface-elevated); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 2px solid var(--status-warning);">
+            <strong style="color: #FFFFFF; display: block; margin-bottom: 4px;">2. Electrical Precautions</strong>
+            Verify operating voltage (3.3V vs 5V) before powering development boards to prevent IC burnouts.
+        </div>
+        <div style="background-color: var(--bg-surface-elevated); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 2px solid var(--status-success);">
+            <strong style="color: #FFFFFF; display: block; margin-bottom: 4px;">3. Safe Returns</strong>
+            Always return microcontrollers in ESD antistatic bags to the lab attendant in Room 402.
+        </div>
+    </div>
+</div>
+
+{% endblock %}
