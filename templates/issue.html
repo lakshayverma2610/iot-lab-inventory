@@ -1,81 +1,97 @@
 {% extends "base.html" %}
 
-{% block title %}Issue Device | IoT Lab Management{% endblock %}
+{% block title %}Issue Equipment | IoT Lab Operations{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-heading">
     <div>
-        <h1>Issue a Device</h1>
-        <p>Issue an IoT laboratory device to a registered student.</p>
+        <p class="eyebrow">EQUIPMENT DISPATCH</p>
+        <h2>Issue Laboratory Equipment</h2>
+        <p class="muted">Record custody transfer of hardware components to an authorized student.</p>
     </div>
 </div>
 
-<div class="card">
-    <h2>Issue Device Form</h2>
+<div class="content-grid">
 
-    <form method="POST" action="{{ url_for('issue') }}" class="form-grid">
-
-        <div class="form-group">
-            <label for="student_id">Select Student</label>
-            <select id="student_id" name="student_id" required>
-                <option value="">-- Select Student --</option>
-                {% for student in students %}
-                <option value="{{ student.id }}">
-                    {{ student.roll_number }} - {{ student.name }}
-                </option>
-                {% endfor %}
-            </select>
+    <!-- ISSUE FORM -->
+    <div class="form-card" style="grid-column: 1 / -1; max-width: 800px;">
+        <div class="card-heading">
+            <div>
+                <h3>Custody Transfer Record</h3>
+                <p>Verify physical condition and quantity prior to dispatch.</p>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="device_id">Select Device</label>
-            <select id="device_id" name="device_id" required>
-                <option value="">-- Select Available Device --</option>
-                {% for device in devices %}
-                <option value="{{ device.id }}">
-                    {{ device.name }} ({{ device.device_code }})
-                    — Available: {{ device.available_quantity }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
+        <form method="POST" action="{{ url_for('issue') }}" class="form-grid">
 
-        <div class="form-group">
-            <label for="quantity">Quantity</label>
-            <input
-                type="number"
-                id="quantity"
-                name="quantity"
-                min="1"
-                value="1"
-                required
-            >
-        </div>
+            <div class="field" style="grid-column: 1 / -1;">
+                <label for="student_id">Designated Student Custodian *</label>
+                <select id="student_id" name="student_id" required>
+                    <option value="">-- Select Registered Student --</option>
+                    {% for student in students %}
+                    <option value="{{ student.id }}">
+                        [{{ student.student_id }}] {{ student.name }} — Dept: {{ student.department }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small>Student must be enrolled in the registry.</small>
+            </div>
 
-        <div class="form-group">
-            <label for="due_date">Expected Return Date</label>
-            <input type="date" id="due_date" name="due_date" required>
-        </div>
+            <div class="field" style="grid-column: 1 / -1;">
+                <label for="device_id">Select Hardware Component *</label>
+                <select id="device_id" name="device_id" required>
+                    <option value="">-- Select Available Hardware Component --</option>
+                    {% for device in devices %}
+                    <option value="{{ device.id }}">
+                        {{ device.name }} ({{ device.device_code }}) — In Stock: {{ device.available_quantity }} units [{{ device.location }}]
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-                Issue Device
-            </button>
-            <a href="{{ url_for('transactions') }}" class="btn btn-secondary">
-                View Transactions
-            </a>
-        </div>
+            <div class="field">
+                <label for="quantity">Quantity to Issue *</label>
+                <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    min="1"
+                    value="1"
+                    required
+                >
+            </div>
 
-    </form>
+            <div class="field">
+                <label for="due_date">Scheduled Return Deadline *</label>
+                <input type="date" id="due_date" name="due_date" required>
+            </div>
+
+            <div class="form-actions" style="margin-top: 10px;">
+                <button type="submit" class="button primary">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Confirm & Record Issue
+                </button>
+                <a href="{{ url_for('transactions') }}" class="button secondary">
+                    View Custody Ledger
+                </a>
+            </div>
+
+        </form>
+    </div>
+
 </div>
 
-<div class="card">
-    <h2>Before Issuing</h2>
-    <ul class="info-list">
-        <li>Ensure the student is registered in the system.</li>
-        <li>Confirm that the selected device has sufficient available stock.</li>
-        <li>Choose the correct expected return date.</li>
-        <li>Record the transaction and verify the device is returned later.</li>
+<div class="card" style="max-width: 800px; margin-top: 16px;">
+    <div class="card-heading">
+        <h3>Standard Lab Dispatch Checklist</h3>
+    </div>
+    <ul class="info-list" style="color: var(--text-secondary); margin: 0; padding-left: 20px; font-size: 13px;">
+        <li>Visually inspect pins, headers, and IC packaging for physical burns or bent pins.</li>
+        <li>Ensure student is informed of the scheduled return date (maximum loan period is 14 days unless authorized).</li>
+        <li>Electrostatic sensitive devices (ESD) must be packaged in conductive ESD shielding before handing over.</li>
+        <li>Record is cryptographically signed into the lab SQLite ledger upon submission.</li>
     </ul>
 </div>
 {% endblock %}

@@ -1,3 +1,5 @@
+import csv
+import io
 import os
 from datetime import date
 
@@ -9,6 +11,7 @@ from flask import (
     url_for,
     flash,
     abort,
+    Response,
 )
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import select, or_, CheckConstraint
@@ -187,10 +190,16 @@ def dashboard():
         if transaction.due_date < date.today()
     ]
 
+    low_stock_devices = [
+        device
+        for device in devices
+        if device.available_quantity <= 2
+    ]
+
     recent_transactions = db.session.scalars(
         select(Transaction)
         .order_by(Transaction.id.desc())
-        .limit(5)
+        .limit(8)
     ).all()
 
     return render_template(
@@ -200,6 +209,8 @@ def dashboard():
         issued_devices=issued_devices,
         overdue_count=len(overdue_transactions),
         recent_transactions=recent_transactions,
+        low_stock_devices=low_stock_devices,
+        today=date.today(),
     )
 
 
@@ -630,6 +641,139 @@ def return_device(transaction_id):
         )
 
     return redirect(url_for("transactions"))
+
+
+# ==========================================
+# LEGAL & COMPLIANCE
+# ==========================================
+
+@app.route("/privacy")
+def privacy_policy():
+    return render_template("privacy.html")
+
+
+@app.route("/terms")
+def terms_conditions():
+    return render_template("terms.html")
+
+
+# ==========================================
+# AUDIT & DATA EXPORT (CSV)
+# ==========================================
+
+@app.route("/export/csv/<export_type>")
+def export_csv(export_type):
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    if export_type == "inventory":
+        devices = db.session.scalars(
+            select(Device).order_by(Device.name)
+        ).all()
+        filename = f"iot_lab_inventory_{date.today().isoformat()}.csv"
+        writer.writerow([
+            "Asset Code",
+            "Component Name",
+            "Category",
+            "Total Quantity",
+            "Available Quantity",
+            "Issued Quantity",
+            "Bench / Storage Location",
+        ])
+        for d in devices:
+            writer.writerow([
+                d.device_code,
+                d.name,
+                d.category,
+                d.total_quantity,
+                d.available_quantity,
+                d.total_quantity - d.available_quantity,
+                d.location,
+            ])
+
+    elif export_type == "active_loans":
+        transactions = db.session.scalars(
+            select(Transaction)
+            .join(Transaction.student)
+            .join(Transaction.device)
+            .where(Transaction.status == "Issued")
+            .order_by(Transaction.due_date.asc())
+        ).all()
+        filename = f"iot_lab_active_loans_{date.today().isoformat()}.csv"
+        writer.writerow([
+            "Ledger ID",
+            "Student Roll No",
+            "Student Name",
+            "Department",
+            "Component Code",
+            "Component Name",
+            "Quantity",
+            "Issue Date",
+            "Due Date",
+            "Is Overdue",
+        ])
+        for t in transactions:
+            is_overdue = "YES" if t.due_date < date.today() else "NO"
+            writer.writerow([
+                f"TX-{t.id}",
+                t.student.student_id,
+                t.student.name,
+                t.student.department,
+                t.device.device_code,
+                t.device.name,
+                t.quantity,
+                t.issue_date.isoformat(),
+                t.due_date.isoformat(),
+                is_overdue,
+            ])
+
+    elif export_type == "all_transactions":
+        transactions = db.session.scalars(
+            select(Transaction)
+            .join(Transaction.student)
+            .join(Transaction.device)
+            .order_by(Transaction.id.desc())
+        ).all()
+        filename = f"iot_lab_custody_ledger_{date.today().isoformat()}.csv"
+        writer.writerow([
+            "Ledger ID",
+            "Student Roll No",
+            "Student Name",
+            "Component Code",
+            "Component Name",
+            "Quantity",
+            "Issue Date",
+            "Due Date",
+            "Return Date",
+            "Status",
+        ])
+        for t in transactions:
+            writer.writerow([
+                f"TX-{t.id}",
+                t.student.student_id,
+                t.student.name,
+                t.device.device_code,
+                t.device.name,
+                t.quantity,
+                t.issue_date.isoformat(),
+                t.due_date.isoformat(),
+                t.return_date.isoformat() if t.return_date else "N/A",
+                t.status,
+            ])
+
+    else:
+        abort(404)
+
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Content-Type": "text/csv; charset=utf-8",
+        },
+    )
+
 
 
 # ==========================================

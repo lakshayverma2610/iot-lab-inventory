@@ -1,14 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}Device Inventory | IoT Lab{% endblock %}
+{% block title %}Hardware Inventory | IoT Lab Operations{% endblock %}
 
 {% block content %}
 
 <div class="page-heading">
     <div>
-        <p class="eyebrow">INVENTORY MANAGEMENT</p>
-        <h2>Device Inventory</h2>
-        <p class="muted">Manage and monitor your laboratory equipment.</p>
+        <p class="eyebrow">HARDWARE CATALOG</p>
+        <h2>Laboratory Inventory & Components</h2>
+        <p class="muted">Manage microcontrollers, sensors, communication shields, and bench test equipment.</p>
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+        <a href="{{ url_for('export_csv', export_type='inventory') }}" class="button secondary">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export Catalog CSV
+        </a>
     </div>
 </div>
 
@@ -18,33 +29,32 @@
     <div class="form-card">
         <div class="card-heading">
             <div>
-                <h3>Add New Device</h3>
-                <p>Register equipment in your laboratory.</p>
+                <h3>Register Hardware Asset</h3>
+                <p>Catalog new laboratory stock or replacement components.</p>
             </div>
-            <span class="stat-icon blue">+</span>
         </div>
 
         <form method="POST">
 
             <div class="field">
-                <label for="device_code">Device Code *</label>
+                <label for="device_code">Asset Code (SKU) *</label>
                 <input
                     type="text"
                     id="device_code"
                     name="device_code"
-                    placeholder="IOT-ESP32-001"
+                    placeholder="e.g. IOT-ESP32-001"
                     required
                 >
-                <small>Enter a unique code for this device type.</small>
+                <small>Unique barcode or inventory serial tag.</small>
             </div>
 
             <div class="field">
-                <label for="name">Device Name *</label>
+                <label for="name">Component Name *</label>
                 <input
                     type="text"
                     id="name"
                     name="name"
-                    placeholder="ESP32 Development Board"
+                    placeholder="e.g. ESP32-WROOM-32D Development Board"
                     required
                 >
             </div>
@@ -55,13 +65,13 @@
                     type="text"
                     id="category"
                     name="category"
-                    placeholder="Microcontroller"
+                    placeholder="e.g. Microcontroller, Sensor, Actuator"
                     required
                 >
             </div>
 
             <div class="field">
-                <label for="quantity">Total Quantity *</label>
+                <label for="quantity">Initial Bench Quantity *</label>
                 <input
                     type="number"
                     id="quantity"
@@ -73,167 +83,166 @@
             </div>
 
             <div class="field">
-                <label for="location">Storage Location</label>
+                <label for="location">Lab Storage Location</label>
                 <input
                     type="text"
                     id="location"
                     name="location"
+                    placeholder="e.g. Cabinet A - Bin 3"
                     value="IoT Lab"
                 >
             </div>
 
             <button type="submit" class="button primary full-width">
-                + Add Device
+                Catalog Component
             </button>
 
         </form>
+
+        <div class="info-box">
+            <strong>Labeling Standard</strong>
+            <p>Ensure hardware asset tags match physical labels affixed to storage bins or ESD antistatic bags.</p>
+        </div>
     </div>
 
-    <!-- INVENTORY SEARCH -->
-    <div class="form-card search-card">
-        <div class="card-heading">
-            <div>
-                <h3>Find Equipment</h3>
-                <p>Search your registered inventory.</p>
+    <!-- INVENTORY SEARCH & DIRECTORY -->
+    <div>
+        <div class="card">
+            <div class="card-heading">
+                <div>
+                    <h3>Search Catalog</h3>
+                    <p>Lookup components by part number, name, or hardware class.</p>
+                </div>
             </div>
-            <span class="stat-icon green">⌕</span>
-        </div>
 
-        <form method="GET">
-
-            <div class="field">
-                <label for="search">Search Inventory</label>
+            <form method="GET" class="search-form" style="max-width: 100%;">
                 <input
                     type="text"
                     id="search"
                     name="search"
                     value="{{ search }}"
-                    placeholder="Enter device name, code, or category"
+                    placeholder="Filter by name, SKU, or category..."
+                    style="flex: 1;"
                 >
+
+                <button type="submit" class="button primary">
+                    Filter
+                </button>
+
+                {% if search %}
+                <a href="{{ url_for('devices') }}" class="button secondary">
+                    Reset
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="section-heading">
+            <div>
+                <h3>Cataloged Assets</h3>
+                <p class="muted">
+                    {% if search %}
+                        Filtered matches for "{{ search }}"
+                    {% else %}
+                        Complete inventory registry
+                    {% endif %}
+                </p>
             </div>
 
-            <button type="submit" class="button primary">
-                Search Devices
-            </button>
+            <span class="record-count">{{ devices|length }} Items</span>
+        </div>
 
-            <a href="{{ url_for('devices') }}" class="button secondary">
-                Clear Search
-            </a>
+        <div class="table-card">
 
-        </form>
+            {% if devices %}
 
-        <div class="info-box">
-            <strong>Inventory tip</strong>
-            <p>
-                Use a unique device code for each registered device type.
-                For example, all five ESP32 boards can share one code if
-                they are tracked as a group.
-            </p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset Tag</th>
+                            <th>Component Name</th>
+                            <th>Class</th>
+                            <th>Total</th>
+                            <th>Shelf Stock</th>
+                            <th>Active Loans</th>
+                            <th>Bin / Bench</th>
+                            <th>Availability</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for device in devices %}
+
+                        <tr>
+                            <td>
+                                <span class="device-code">
+                                    {{ device.device_code }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <strong>{{ device.name }}</strong>
+                            </td>
+
+                            <td>{{ device.category }}</td>
+
+                            <td>{{ device.total_quantity }}</td>
+
+                            <td>
+                                <strong style="color: {% if device.available_quantity == 0 %}var(--status-danger){% elif device.available_quantity <= 2 %}var(--status-warning){% else %}var(--status-success){% endif %};">
+                                    {{ device.available_quantity }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ device.total_quantity - device.available_quantity }}
+                            </td>
+
+                            <td>{{ device.location }}</td>
+
+                            <td>
+                                {% if device.available_quantity == 0 %}
+                                    <span class="badge danger">Exhausted</span>
+                                {% elif device.available_quantity < device.total_quantity %}
+                                    <span class="badge warning">Partial Stock</span>
+                                {% else %}
+                                    <span class="badge success">In Stock</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                </svg>
+                <h3>No equipment records found</h3>
+
+                {% if search %}
+                    <p>No cataloged components matched query "{{ search }}".</p>
+                    <a href="{{ url_for('devices') }}" class="button secondary">
+                        View Entire Catalog
+                    </a>
+                {% else %}
+                    <p>Register your first IoT hardware component using the form on the left.</p>
+                {% endif %}
+            </div>
+
+            {% endif %}
+
         </div>
     </div>
-
-</div>
-
-<!-- DEVICE TABLE -->
-<div class="section-heading">
-    <div>
-        <h3>Registered Equipment</h3>
-        <p class="muted">
-            {% if search %}
-                Search results for "{{ search }}"
-            {% else %}
-                All devices registered in the laboratory.
-            {% endif %}
-        </p>
-    </div>
-
-    <span class="record-count">{{ devices|length }} records</span>
-</div>
-
-<div class="table-card">
-
-    {% if devices %}
-
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Device Code</th>
-                    <th>Equipment Name</th>
-                    <th>Category</th>
-                    <th>Total</th>
-                    <th>Available</th>
-                    <th>Issued</th>
-                    <th>Location</th>
-                    <th>Availability</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {% for device in devices %}
-
-                <tr>
-                    <td>
-                        <span class="device-code">
-                            {{ device.device_code }}
-                        </span>
-                    </td>
-
-                    <td>
-                        <strong>{{ device.name }}</strong>
-                    </td>
-
-                    <td>{{ device.category }}</td>
-
-                    <td>{{ device.total_quantity }}</td>
-
-                    <td>
-                        <strong class="quantity-available">
-                            {{ device.available_quantity }}
-                        </strong>
-                    </td>
-
-                    <td>
-                        {{ device.total_quantity - device.available_quantity }}
-                    </td>
-
-                    <td>{{ device.location }}</td>
-
-                    <td>
-                        {% if device.available_quantity == 0 %}
-                            <span class="badge danger">Unavailable</span>
-                        {% elif device.available_quantity < device.total_quantity %}
-                            <span class="badge warning">Partially Issued</span>
-                        {% else %}
-                            <span class="badge success">In Stock</span>
-                        {% endif %}
-                    </td>
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-        </table>
-    </div>
-
-    {% else %}
-
-    <div class="empty-state">
-        <div class="empty-icon">▣</div>
-        <h3>No equipment found</h3>
-
-        {% if search %}
-            <p>Try another search term or clear your search.</p>
-            <a href="{{ url_for('devices') }}" class="button secondary">
-                Show All Devices
-            </a>
-        {% else %}
-            <p>Add your first laboratory device using the form above.</p>
-        {% endif %}
-    </div>
-
-    {% endif %}
 
 </div>
 

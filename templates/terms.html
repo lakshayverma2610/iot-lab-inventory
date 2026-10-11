@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Laboratory Equipment Terms & Conditions | IoT Lab Operations{% endblock %}
+
+{% block content %}
+<div class="legal-document">
+    <h1>Laboratory Equipment Usage Terms & Conditions</h1>
+    <div class="legal-meta">
+        Laboratory Safety & Equipment Custody Agreement • Institutional Guideline Ref: LAB-IOT-REG-2026
+    </div>
+
+    <h2>1. General Equipment Custody</h2>
+    <p>
+        All microcontrollers, sensors, radio modules (LoRa, BLE, Zigbee, Wi-Fi), actuators, and test instruments allocated through this portal remain the exclusive property of the University IoT Laboratory. By receiving equipment, the enrolled student assumes full custodial responsibility for the care, handling, and timely return of all issued units.
+    </p>
+
+    <h2>2. Loan Periods and Return Deadlines</h2>
+    <ul>
+        <li><strong>Standard Coursework Loan:</strong> Equipment is issued for a maximum duration of 14 calendar days unless an explicit capstone extension has been authorized in writing by the supervising lab instructor.</li>
+        <li><strong>Overdue Status:</strong> Items not returned by the recorded due date automatically place the borrower's account on restricted status, preventing further checkouts across all department laboratories.</li>
+        <li><strong>Semester End Clearance:</strong> All borrowed items must be returned and verified no later than the final day of scheduled semester lab examinations.</li>
+    </ul>
+
+    <h2>3. Handling of Sensitive Electronic Hardware</h2>
+    <p>
+        Borrowers are required to adhere to rigorous bench handling procedures:
+    </p>
+    <ul>
+        <li><strong>Electrostatic Discharge (ESD) Protection:</strong> Components must be transported in provided antistatic bags and handled using ESD-safe workstations when prototyping.</li>
+        <li><strong>Supply Voltage Verification:</strong> Prior to powering any development board (e.g. ESP32, STM32, Arduino, Raspberry Pi Pico), students must verify logic voltage levels (3.3V vs 5V) to prevent over-voltage damage.</li>
+        <li><strong>Soldering Restrictions:</strong> No permanent soldering may be performed on modular headers or reusable laboratory breakout boards without instructor consent.</li>
+    </ul>
+
+    <h2>4. Loss, Burnout, or Component Damage</h2>
+    <p>
+        In the event of accidental component burnout (short circuits, reverse polarity, or physical pin breakage), the incident must be reported immediately to the lab technician during return. Concealing broken hardware compromises future students' laboratory practicals.
+    </p>
+    <p>
+        Willful negligence or repeated failure to return lab assets will result in formal referral to the Department Head and may incur replacement requisitions according to university equipment repair policies.
+    </p>
+
+    <h2>5. Acceptance of Terms</h2>
+    <p>
+        Submission of a student checkout request constitutes full acknowledgement and acceptance of these Laboratory Equipment Usage Terms.
+    </p>
+</div>
+{% endblock %}

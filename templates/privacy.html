@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Data Retention & Privacy Policy | IoT Lab Operations{% endblock %}
+
+{% block content %}
+<div class="legal-document">
+    <h1>Laboratory Data Retention & Privacy Policy</h1>
+    <div class="legal-meta">
+        Department of Electronics & Computer Engineering • Laboratory Operations Directive 2026-A • Last Revised: October 2026
+    </div>
+
+    <h2>1. Purpose and Scope</h2>
+    <p>
+        This policy governs the collection, processing, and retention of student identifiers, faculty authorizations, and hardware loan custody records within the IoT Laboratory Inventory and Asset Tracking Platform. This system operates as an internal institutional asset ledger for academic laboratory resources.
+    </p>
+
+    <h2>2. Data Collected</h2>
+    <p>The system stores minimal operational data required strictly for equipment custody and institutional auditability:</p>
+    <ul>
+        <li><strong>Student Identification Data:</strong> Legal Name, Institutional Student ID / Roll Number, Department, and Academic Semester.</li>
+        <li><strong>Custody Records:</strong> Equipment Asset Tag, quantity checked out, date of issuance, designated return deadline, and actual check-in date.</li>
+        <li><strong>Hardware Diagnostic Notes:</strong> Equipment status upon return (operational check verification, pin condition, and restock confirmations).</li>
+    </ul>
+
+    <h2>3. Data Usage & Access Restrictions</h2>
+    <p>
+        Data recorded in this system is strictly utilized for:
+    </p>
+    <ul>
+        <li>Reconciling physical laboratory inventory and bench availability.</li>
+        <li>Preventing loss of high-value microcontrollers, FPGA development kits, and precision sensors.</li>
+        <li>Generating semester-end clearance reports for graduating or transferring students.</li>
+    </ul>
+    <p>
+        No personal information or identification data is ever shared with external commercial entities, advertising networks, or third-party automated processors. Access to administrative controls is restricted to authorized lab instructors and technical staff.
+    </p>
+
+    <h2>4. Data Retention Schedule</h2>
+    <p>
+        Transaction logs are retained for the duration of the student's active degree program plus one (1) academic semester for institutional audit compliance. Following degree conferral or formal lab clearance, inactive borrowing records are archived according to university records retention policies.
+    </p>
+
+    <h2>5. Inquiries & Data Verification</h2>
+    <p>
+        Students wishing to verify their active borrowing record or rectify an erroneous return record may contact the IoT Laboratory Superintendent in Room 402 during operational bench hours (08:30 – 17:30, Monday through Friday).
+    </p>
+</div>
+{% endblock %}

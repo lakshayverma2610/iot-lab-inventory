@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Department of Electronics & Computer Engineering IoT Laboratory Inventory and Asset Operations Platform">
 
-    <title>{% block title %}IoT Lab Management System{% endblock %}</title>
+    <title>{% block title %}IoT Lab Inventory System{% endblock %}</title>
 
-    <!-- Main CSS Stylesheet -->
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='css/style.css') }}"
-    >
+    <!-- Custom Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
@@ -20,102 +21,146 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
 
-            <div class="logo">
-                ⚡ IoT Lab
+            <div class="brand-header">
+                <svg class="brand-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="32" height="32" rx="6" fill="#0F172A" stroke="#334155"/>
+                    <rect x="8" y="8" width="16" height="16" rx="2" fill="#1E293B" stroke="#38BDF8" stroke-width="1.2"/>
+                    <circle cx="16" cy="16" r="2.5" fill="#10B981"/>
+                    <line x1="12" y1="4" x2="12" y2="8" stroke="#38BDF8" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="16" y1="4" x2="16" y2="8" stroke="#38BDF8" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="20" y1="4" x2="20" y2="8" stroke="#38BDF8" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="12" y1="24" x2="12" y2="28" stroke="#38BDF8" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="16" y1="24" x2="16" y2="28" stroke="#38BDF8" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="20" y1="24" x2="20" y2="28" stroke="#38BDF8" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+                <div>
+                    <div class="brand-title">IoT Lab Operations</div>
+                    <div class="brand-subtitle">Asset Tracking System</div>
+                </div>
             </div>
 
-            <p class="logo-subtitle">
-                Equipment Management System
-            </p>
-
             <nav>
-                <a href="{{ url_for('dashboard') }}"
-                   class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
-                    ▦ Dashboard
+                <div class="nav-section-title">Core Operations</div>
+
+                <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
                 </a>
 
-                <a href="{{ url_for('devices') }}"
-                   class="{% if request.endpoint == 'devices' %}active{% endif %}">
-                    ▣ Equipment Inventory
+                <a href="{{ url_for('devices') }}" class="{% if request.endpoint == 'devices' %}active{% endif %}">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                        <rect x="9" y="9" width="6" height="6"></rect>
+                        <line x1="9" y1="1" x2="9" y2="4"></line>
+                        <line x1="15" y1="1" x2="15" y2="4"></line>
+                        <line x1="9" y1="20" x2="9" y2="23"></line>
+                        <line x1="15" y1="20" x2="15" y2="23"></line>
+                    </svg>
+                    Hardware Inventory
                 </a>
 
-                <a href="{{ url_for('students') }}"
-                   class="{% if request.endpoint == 'students' %}active{% endif %}">
-                    ♙ Students
+                <a href="{{ url_for('students') }}" class="{% if request.endpoint == 'students' %}active{% endif %}">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Student Registry
                 </a>
 
-                <a href="{{ url_for('issue') }}"
-                   class="{% if request.endpoint == 'issue' %}active{% endif %}">
-                    ↗ Issue Equipment
+                <div class="nav-section-title">Transactions</div>
+
+                <a href="{{ url_for('issue') }}" class="{% if request.endpoint == 'issue' %}active{% endif %}">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 8 16 12 12 16"></polyline>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Issue Equipment
                 </a>
 
-                <a href="{{ url_for('transactions') }}"
-                   class="{% if request.endpoint in ['transactions', 'return_device'] %}active{% endif %}">
-                    ⇄ Issue & Return History
+                <a href="{{ url_for('transactions') }}" class="{% if request.endpoint in ['transactions', 'return_device'] %}active{% endif %}">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="17 1 21 5 17 9"></polyline>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                        <polyline points="7 23 3 19 7 15"></polyline>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg>
+                    Loan Ledger
+                </a>
+
+                <div class="nav-section-title">System & Audit</div>
+
+                <a href="{{ url_for('export_csv', export_type='inventory') }}" target="_blank">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export Inventory CSV
                 </a>
             </nav>
 
-            <div class="footer">
-                IoT Laboratory<br>
-                Inventory Management
+            <div class="sidebar-footer">
+                <div>Lab Room 402 • Engineering Hall</div>
+                <div class="sidebar-footer-links">
+                    <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a>
+                    <span>•</span>
+                    <a href="{{ url_for('terms_conditions') }}">Usage Terms</a>
+                </div>
             </div>
 
         </aside>
 
-
-        <!-- Main Content -->
+        <!-- Main Content Area -->
         <main class="main-content">
 
-            <!-- Top Header -->
+            <!-- Topbar -->
             <header class="topbar">
-                <div>
-                    <h2>IoT Laboratory Portal</h2>
-                    <p>Equipment and Inventory Management</p>
+                <div class="topbar-title">
+                    <h2>IoT Laboratory Operations</h2>
+                    <p>Asset Verification & Hardware Custody Ledger</p>
                 </div>
 
-                <div>
-                    <span class="status-badge status-available">
-                        ● System Online
+                <div class="topbar-actions">
+                    <span class="system-status-indicator">
+                        <span class="status-dot"></span>
+                        Lab Ledger Active
                     </span>
                 </div>
             </header>
 
-
-            <!-- Flash Messages -->
+            <!-- Flash Messaging -->
             <section class="flash-container">
-
                 {% with messages = get_flashed_messages(with_categories=true) %}
-
                     {% if messages %}
-
                         {% for category, message in messages %}
-
                             <div class="flash flash-{{ category }}">
                                 {{ message }}
                             </div>
-
                         {% endfor %}
-
                     {% endif %}
-
                 {% endwith %}
-
             </section>
 
+            <!-- Page Content Injection -->
+            {% block content %}{% endblock %}
 
-            <!-- Individual Page Content -->
-            {% block content %}
-
-            {% endblock %}
-
-
-            <!-- Footer -->
+            <!-- Clean Institutional Footer -->
             <footer class="footer">
-                <p>
-                    © {{ now_year if now_year is defined else 2026 }}
-                    IoT Lab Management System.
-                    Built for efficient laboratory management.
-                </p>
+                <div>
+                    IoT Laboratory Asset Tracking System • Department of Computer & Communication Engineering
+                </div>
+                <div class="footer-nav">
+                    <a href="{{ url_for('privacy_policy') }}">Data Retention & Privacy</a>
+                    <a href="{{ url_for('terms_conditions') }}">Equipment Borrowing Policy</a>
+                </div>
             </footer>
 
         </main>

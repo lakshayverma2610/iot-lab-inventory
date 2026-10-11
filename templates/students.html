@@ -1,118 +1,173 @@
 {% extends "base.html" %}
 
-{% block title %}Students | IoT Lab Management{% endblock %}
+{% block title %}Student Registry | IoT Lab Operations{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-heading">
     <div>
-        <h1>Students</h1>
-        <p>Manage student registrations for the IoT laboratory.</p>
+        <p class="eyebrow">LAB USER MANAGEMENT</p>
+        <h2>Authorized Student Custodians</h2>
+        <p class="muted">Manage verified student profiles eligible for laboratory equipment borrowing.</p>
     </div>
 </div>
 
-<div class="card">
-    <h2>Register New Student</h2>
+<div class="content-grid">
 
-    <form method="POST" action="{{ url_for('students') }}" class="form-grid">
-        <div class="form-group">
-            <label for="student_id">Student ID / Roll Number</label>
-            <input
-                type="text"
-                id="student_id"
-                name="student_id"
-                placeholder="Enter student ID"
-                required
-            >
+    <!-- REGISTER STUDENT FORM -->
+    <div class="form-card">
+        <div class="card-heading">
+            <div>
+                <h3>Enroll Student</h3>
+                <p>Register a student for lab component access.</p>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="name">Full Name</label>
-            <input
-                type="text"
-                id="name"
-                name="name"
-                placeholder="Enter full name"
-                required
-            >
-        </div>
+        <form method="POST" action="{{ url_for('students') }}">
+            <div class="field">
+                <label for="student_id">Institutional Roll / ID No. *</label>
+                <input
+                    type="text"
+                    id="student_id"
+                    name="student_id"
+                    placeholder="e.g. 21BCE1042"
+                    required
+                >
+                <small>University ID card identification number.</small>
+            </div>
 
-        <div class="form-group">
-            <label for="department">Department</label>
-            <input
-                type="text"
-                id="department"
-                name="department"
-                placeholder="e.g. Computer Science"
-                required
-            >
-        </div>
+            <div class="field">
+                <label for="name">Legal Full Name *</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="e.g. Jordan Miller"
+                    required
+                >
+            </div>
 
-        <div class="form-group">
-            <label for="semester">Semester</label>
-            <select id="semester" name="semester" required>
-                <option value="">-- Select Semester --</option>
-                <option value="1">1st Semester</option>
-                <option value="2">2nd Semester</option>
-                <option value="3">3rd Semester</option>
-                <option value="4">4th Semester</option>
-                <option value="5">5th Semester</option>
-                <option value="6">6th Semester</option>
-                <option value="7">7th Semester</option>
-                <option value="8">8th Semester</option>
-            </select>
-        </div>
+            <div class="field">
+                <label for="department">Academic Department *</label>
+                <input
+                    type="text"
+                    id="department"
+                    name="department"
+                    placeholder="e.g. Electronics & Comm. Engg."
+                    required
+                >
+            </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-                Register Student
+            <div class="field">
+                <label for="semester">Semester Standing *</label>
+                <select id="semester" name="semester" required>
+                    <option value="">-- Select Semester --</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                    <option value="5">Semester 5</option>
+                    <option value="6">Semester 6</option>
+                    <option value="7">Semester 7</option>
+                    <option value="8">Semester 8</option>
+                    <option value="PG / Research">PG / Research Scholar</option>
+                </select>
+            </div>
+
+            <button type="submit" class="button primary full-width">
+                Enroll Student
             </button>
-        </div>
-    </form>
-</div>
-
-<div class="card">
-    <div class="section-heading">
-        <h2>Student Directory</h2>
-
-        <form method="GET" action="{{ url_for('students') }}" class="search-form">
-            <input
-                type="text"
-                name="search"
-                placeholder="Search by name or student ID..."
-                value="{{ search }}"
-            >
-            <button type="submit" class="btn btn-secondary">Search</button>
         </form>
+
+        <div class="info-box">
+            <strong>Verification Note</strong>
+            <p>Students must agree to the Lab Usage Terms upon receiving their initial hardware allocation.</p>
+        </div>
     </div>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Student ID</th>
-                    <th>Name</th>
-                    <th>Department</th>
-                    <th>Semester</th>
-                </tr>
-            </thead>
+    <!-- STUDENT DIRECTORY -->
+    <div>
+        <div class="card">
+            <div class="card-heading">
+                <div>
+                    <h3>Find Student</h3>
+                    <p>Lookup enrolled students by roll number or name.</p>
+                </div>
+            </div>
 
-            <tbody>
-                {% for student in students %}
-                <tr>
-                    <td>{{ student.student_id }}</td>
-                    <td>{{ student.name }}</td>
-                    <td>{{ student.department }}</td>
-                    <td>{{ student.semester }}</td>
-                </tr>
+            <form method="GET" action="{{ url_for('students') }}" class="search-form" style="max-width: 100%;">
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search by student ID or name..."
+                    value="{{ search }}"
+                    style="flex: 1;"
+                >
+                <button type="submit" class="button primary">Search</button>
+                {% if search %}
+                <a href="{{ url_for('students') }}" class="button secondary">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="section-heading">
+            <div>
+                <h3>Enrolled Students</h3>
+                <p class="muted">
+                    {% if search %}
+                        Filtered records matching "{{ search }}"
+                    {% else %}
+                        All registered laboratory students
+                    {% endif %}
+                </p>
+            </div>
+
+            <span class="record-count">{{ students|length }} Students</span>
+        </div>
+
+        <div class="table-card">
+            {% if students %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Full Name</th>
+                            <th>Department</th>
+                            <th>Semester</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td><span class="device-code">{{ student.student_id }}</span></td>
+                            <td><strong>{{ student.name }}</strong></td>
+                            <td>{{ student.department }}</td>
+                            <td>Semester {{ student.semester }}</td>
+                            <td><span class="badge success">Active</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                </svg>
+                <h3>No students found</h3>
+                {% if search %}
+                    <p>No student matching "{{ search }}" was found in the database.</p>
+                    <a href="{{ url_for('students') }}" class="button secondary">Reset Search</a>
                 {% else %}
-                <tr>
-                    <td colspan="4" class="empty-state">
-                        No students registered yet.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    <p>Register the first student using the enrollment form on the left.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
     </div>
+
 </div>
 {% endblock %}

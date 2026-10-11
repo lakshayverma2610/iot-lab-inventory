@@ -1,35 +1,52 @@
 {% extends "base.html" %}
 
-{% block title %}Transactions | IoT Lab Management{% endblock %}
+{% block title %}Custody Ledger | IoT Lab Operations{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-heading">
     <div>
-        <h1>Device Transactions</h1>
-        <p>Track issued devices, due dates, and completed returns.</p>
+        <p class="eyebrow">AUDIT & TRANSACTION LOGS</p>
+        <h2>Equipment Custody Ledger</h2>
+        <p class="muted">Complete chronological record of all hardware issues, return reconciliations, and loan statuses.</p>
     </div>
 
-    <a href="{{ url_for('issue') }}" class="btn btn-primary">
-        + Issue Device
-    </a>
+    <div style="display: flex; gap: 8px;">
+        <a href="{{ url_for('export_csv', export_type='all_transactions') }}" class="button secondary">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export Ledger CSV
+        </a>
+        <a href="{{ url_for('issue') }}" class="button primary">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Issue Equipment
+        </a>
+    </div>
 </div>
 
 <div class="card">
     <div class="section-heading">
-        <h2>Transaction History</h2>
+        <div>
+            <h3>Search Ledger Records</h3>
+            <p>Filter by student roll number, student name, device name, or asset tag.</p>
+        </div>
 
-        <form method="GET"
-              action="{{ url_for('transactions') }}"
-              class="search-form">
-
+        <form method="GET" action="{{ url_for('transactions') }}" class="search-form">
             <input
                 type="text"
                 name="search"
-                placeholder="Search student or device..."
+                placeholder="Search ledger..."
                 value="{{ search }}"
             >
-
-            <button type="submit" class="btn btn-secondary">Search</button>
+            <button type="submit" class="button primary">Filter</button>
+            {% if search %}
+            <a href="{{ url_for('transactions') }}" class="button secondary">Clear</a>
+            {% endif %}
         </form>
     </div>
 
@@ -37,31 +54,31 @@
         <table>
             <thead>
                 <tr>
-                    <th>Transaction ID</th>
-                    <th>Student</th>
-                    <th>Device</th>
+                    <th>Ledger ID</th>
+                    <th>Student Custodian</th>
+                    <th>Hardware Asset</th>
                     <th>Quantity</th>
                     <th>Issue Date</th>
                     <th>Due Date</th>
                     <th>Return Date</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th>Reconciliation</th>
                 </tr>
             </thead>
 
             <tbody>
                 {% for transaction in transactions %}
                 <tr>
-                    <td>#{{ transaction.id }}</td>
+                    <td><span class="device-code">#TX-{{ transaction.id }}</span></td>
 
                     <td>
-                        {{ transaction.student.name }}<br>
-                        <small>{{ transaction.student.student_id }}</small>
+                        <strong>{{ transaction.student.name }}</strong>
+                        <small class="table-subtitle">ID: {{ transaction.student.student_id }}</small>
                     </td>
 
                     <td>
-                        {{ transaction.device.name }}<br>
-                        <small>{{ transaction.device.device_code }}</small>
+                        <strong>{{ transaction.device.name }}</strong>
+                        <small class="table-subtitle">{{ transaction.device.device_code }}</small>
                     </td>
 
                     <td>{{ transaction.quantity }}</td>
@@ -72,21 +89,24 @@
 
                     <td>
                         {{ transaction.due_date.strftime('%d-%m-%Y') }}
+                        {% if transaction.status == 'Issued' and transaction.due_date < today %}
+                            <span class="badge danger" style="margin-left: 4px;">Overdue</span>
+                        {% endif %}
                     </td>
 
                     <td>
                         {% if transaction.return_date %}
                             {{ transaction.return_date.strftime('%d-%m-%Y') }}
                         {% else %}
-                            —
+                            <span class="muted-text">—</span>
                         {% endif %}
                     </td>
 
                     <td>
                         {% if transaction.status == 'Issued' %}
-                            <span class="status-badge status-issued">Issued</span>
+                            <span class="badge warning">With Student</span>
                         {% else %}
-                            <span class="status-badge status-returned">Returned</span>
+                            <span class="badge success">Restocked</span>
                         {% endif %}
                     </td>
 
@@ -95,14 +115,15 @@
                         <form
                             method="POST"
                             action="{{ url_for('return_device', transaction_id=transaction.id) }}"
-                            onsubmit="return confirm('Confirm that this device has been returned?');"
+                            onsubmit="return confirm('Confirm inspection and return of this equipment to lab inventory?');"
+                            style="margin: 0;"
                         >
-                            <button type="submit" class="btn btn-success">
-                                Mark Returned
+                            <button type="submit" class="btn btn-success btn-sm">
+                                Reconcile Return
                             </button>
                         </form>
                         {% else %}
-                            <span class="muted-text">Completed</span>
+                            <span class="muted-text">Verified In Bench</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -110,7 +131,13 @@
                 {% else %}
                 <tr>
                     <td colspan="9" class="empty-state">
-                        No transactions found.
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                            <polyline points="17 1 21 5 17 9"></polyline>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                            <polyline points="7 23 3 19 7 15"></polyline>
+                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                        </svg>
+                        <p style="margin-top: 8px;">No transaction records match the current filter.</p>
                     </td>
                 </tr>
                 {% endfor %}

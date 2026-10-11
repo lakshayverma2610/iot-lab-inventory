@@ -1,78 +1,161 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard | IoT Lab{% endblock %}
+{% block title %}Dashboard | IoT Lab Operations{% endblock %}
 
 {% block content %}
 
 <div class="page-heading">
     <div>
-        <p class="eyebrow">OVERVIEW</p>
-        <h2>Laboratory Dashboard</h2>
-        <p class="muted">Monitor your equipment, availability and issue records.</p>
+        <p class="eyebrow">TELEMETRY & ASSET METRICS</p>
+        <h2>Operations Overview</h2>
+        <p class="muted">Live status of physical laboratory inventory, active student loans, and maintenance items.</p>
     </div>
 
-    <a href="{{ url_for('issue') }}" class="button primary">
-        + Issue Equipment
-    </a>
+    <div style="display: flex; gap: 8px;">
+        <a href="{{ url_for('export_csv', export_type='active_loans') }}" class="button secondary">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export Active Loans CSV
+        </a>
+        <a href="{{ url_for('issue') }}" class="button primary">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Issue Equipment
+        </a>
+    </div>
 </div>
 
-<div class="welcome-banner">
+<div class="lab-ops-banner">
     <div>
-        <p class="eyebrow light">IOT LABORATORY</p>
-        <h2>Equipment at a glance</h2>
-        <p>Keep track of laboratory resources in one place.</p>
+        <h3>Bench Stock & Custody Reconciliation</h3>
+        <p>Lab Room 402 • Operational hours 08:30 – 17:30 Mon-Fri. Equipment loans require student ID verification.</p>
     </div>
-    <div class="banner-icon">⌘</div>
+    <div class="ops-meta">
+        <div>BENCH AUDIT: ACTIVE</div>
+        <div>STATION #01 READY</div>
+    </div>
 </div>
 
 <div class="stats-grid">
 
-    <div class="stat-card">
+    <div class="stat-card stat-blue">
         <div class="stat-top">
-            <span>Total Equipment</span>
-            <span class="stat-icon blue">▣</span>
+            <span>Total Lab Units</span>
+            <span class="stat-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+            </span>
         </div>
         <h3>{{ total_devices }}</h3>
-        <p>Registered units in inventory</p>
+        <p>Cataloged hardware components</p>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card stat-green">
         <div class="stat-top">
-            <span>Available Units</span>
-            <span class="stat-icon green">✓</span>
+            <span>Available on Shelf</span>
+            <span class="stat-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </span>
         </div>
         <h3>{{ available_devices }}</h3>
-        <p>Currently available for issue</p>
+        <p>Ready for bench issue</p>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card stat-orange">
         <div class="stat-top">
-            <span>Issued Units</span>
-            <span class="stat-icon orange">↗</span>
+            <span>In Student Custody</span>
+            <span class="stat-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                </svg>
+            </span>
         </div>
         <h3>{{ issued_devices }}</h3>
-        <p>Currently with students</p>
+        <p>Currently on project loan</p>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card stat-red">
         <div class="stat-top">
-            <span>Overdue Records</span>
-            <span class="stat-icon red">!</span>
+            <span>Overdue Reconciliations</span>
+            <span class="stat-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </span>
         </div>
         <h3>{{ overdue_count }}</h3>
-        <p>Past their expected return date</p>
+        <p>Past return deadline</p>
     </div>
 
 </div>
 
+<!-- Low Stock Alerts Section (If any) -->
+{% if low_stock_devices %}
+<div class="card" style="border-left: 3px solid var(--status-warning);">
+    <div class="card-heading">
+        <div>
+            <h3 style="color: var(--status-warning);">Reorder & Restock Advisory</h3>
+            <p>Equipment with 2 or fewer available units remaining on the bench.</p>
+        </div>
+        <span class="badge warning">{{ low_stock_devices|length }} Item(s) Low</span>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item Code</th>
+                    <th>Component Name</th>
+                    <th>Category</th>
+                    <th>Available / Total</th>
+                    <th>Storage Shelf</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dev in low_stock_devices %}
+                <tr>
+                    <td><span class="device-code">{{ dev.device_code }}</span></td>
+                    <td><strong>{{ dev.name }}</strong></td>
+                    <td>{{ dev.category }}</td>
+                    <td>
+                        <span class="badge {% if dev.available_quantity == 0 %}danger{% else %}warning{% endif %}">
+                            {{ dev.available_quantity }} / {{ dev.total_quantity }} left
+                        </span>
+                    </td>
+                    <td>{{ dev.location }}</td>
+                    <td>
+                        <a href="{{ url_for('devices') }}?search={{ dev.device_code }}" class="btn btn-secondary btn-sm">
+                            Inspect
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
 <div class="section-heading">
     <div>
-        <h3>Recent Transactions</h3>
-        <p class="muted">The latest equipment issue and return records.</p>
+        <h3>Recent Custody Transactions</h3>
+        <p class="muted">Most recent equipment check-outs and returns.</p>
     </div>
 
     <a href="{{ url_for('transactions') }}" class="text-link">
-        View all →
+        Full Custody Ledger →
     </a>
 </div>
 
@@ -82,11 +165,12 @@
         <table>
             <thead>
                 <tr>
-                    <th>Student</th>
-                    <th>Equipment</th>
-                    <th>Quantity</th>
-                    <th>Issue Date</th>
-                    <th>Due Date</th>
+                    <th>Record ID</th>
+                    <th>Student Custodian</th>
+                    <th>Hardware Component</th>
+                    <th>Qty</th>
+                    <th>Issued On</th>
+                    <th>Return Due</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -94,33 +178,32 @@
             <tbody>
                 {% for transaction in recent_transactions %}
                 <tr>
+                    <td><span class="device-code">#TX-{{ transaction.id }}</span></td>
                     <td>
                         <strong>{{ transaction.student.name }}</strong>
-                        <small class="table-subtitle">
-                            {{ transaction.student.student_id }}
-                        </small>
+                        <small class="table-subtitle">ID: {{ transaction.student.student_id }}</small>
                     </td>
 
                     <td>
-                        {{ transaction.device.name }}
-                        <small class="table-subtitle">
-                            {{ transaction.device.device_code }}
-                        </small>
+                        <strong>{{ transaction.device.name }}</strong>
+                        <small class="table-subtitle">{{ transaction.device.device_code }}</small>
                     </td>
 
                     <td>{{ transaction.quantity }}</td>
-                    <td>{{ transaction.issue_date.strftime('%d %b %Y') }}</td>
-                    <td>{{ transaction.due_date.strftime('%d %b %Y') }}</td>
+                    <td>{{ transaction.issue_date.strftime('%d-%m-%Y') }}</td>
+                    <td>
+                        {{ transaction.due_date.strftime('%d-%m-%Y') }}
+                        {% if transaction.status == 'Issued' and transaction.due_date < today %}
+                            <span class="badge danger">Overdue</span>
+                        {% endif %}
+                    </td>
 
                     <td>
-                        <span class="badge
-                            {% if transaction.status == 'Issued' %}
-                                warning
-                            {% else %}
-                                success
-                            {% endif %}">
-                            {{ transaction.status }}
-                        </span>
+                        {% if transaction.status == 'Issued' %}
+                            <span class="badge warning">With Student</span>
+                        {% else %}
+                            <span class="badge success">Restocked</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -129,11 +212,14 @@
     </div>
     {% else %}
         <div class="empty-state">
-            <div class="empty-icon">☷</div>
-            <h3>No transactions yet</h3>
-            <p>Equipment issue records will appear here once you start issuing devices.</p>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+            <h3>No custody records recorded</h3>
+            <p>Laboratory equipment issue records will populate here upon loan authorization.</p>
             <a href="{{ url_for('issue') }}" class="button primary">
-                Create First Issue
+                Issue First Hardware Item
             </a>
         </div>
     {% endif %}
