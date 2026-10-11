@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Device Inventory | IoT Lab{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">INVENTORY MANAGEMENT</p>
+        <h2>Device Inventory</h2>
+        <p class="muted">Manage and monitor your laboratory equipment.</p>
+    </div>
+</div>
+
+<div class="content-grid">
+
+    <!-- ADD DEVICE FORM -->
+    <div class="form-card">
+        <div class="card-heading">
+            <div>
+                <h3>Add New Device</h3>
+                <p>Register equipment in your laboratory.</p>
+            </div>
+            <span class="stat-icon blue">+</span>
+        </div>
+
+        <form method="POST">
+
+            <div class="field">
+                <label for="device_code">Device Code *</label>
+                <input
+                    type="text"
+                    id="device_code"
+                    name="device_code"
+                    placeholder="IOT-ESP32-001"
+                    required
+                >
+                <small>Enter a unique code for this device type.</small>
+            </div>
+
+            <div class="field">
+                <label for="name">Device Name *</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="ESP32 Development Board"
+                    required
+                >
+            </div>
+
+            <div class="field">
+                <label for="category">Category *</label>
+                <input
+                    type="text"
+                    id="category"
+                    name="category"
+                    placeholder="Microcontroller"
+                    required
+                >
+            </div>
+
+            <div class="field">
+                <label for="quantity">Total Quantity *</label>
+                <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    min="1"
+                    value="1"
+                    required
+                >
+            </div>
+
+            <div class="field">
+                <label for="location">Storage Location</label>
+                <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    value="IoT Lab"
+                >
+            </div>
+
+            <button type="submit" class="button primary full-width">
+                + Add Device
+            </button>
+
+        </form>
+    </div>
+
+    <!-- INVENTORY SEARCH -->
+    <div class="form-card search-card">
+        <div class="card-heading">
+            <div>
+                <h3>Find Equipment</h3>
+                <p>Search your registered inventory.</p>
+            </div>
+            <span class="stat-icon green">⌕</span>
+        </div>
+
+        <form method="GET">
+
+            <div class="field">
+                <label for="search">Search Inventory</label>
+                <input
+                    type="text"
+                    id="search"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Enter device name, code, or category"
+                >
+            </div>
+
+            <button type="submit" class="button primary">
+                Search Devices
+            </button>
+
+            <a href="{{ url_for('devices') }}" class="button secondary">
+                Clear Search
+            </a>
+
+        </form>
+
+        <div class="info-box">
+            <strong>Inventory tip</strong>
+            <p>
+                Use a unique device code for each registered device type.
+                For example, all five ESP32 boards can share one code if
+                they are tracked as a group.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<!-- DEVICE TABLE -->
+<div class="section-heading">
+    <div>
+        <h3>Registered Equipment</h3>
+        <p class="muted">
+            {% if search %}
+                Search results for "{{ search }}"
+            {% else %}
+                All devices registered in the laboratory.
+            {% endif %}
+        </p>
+    </div>
+
+    <span class="record-count">{{ devices|length }} records</span>
+</div>
+
+<div class="table-card">
+
+    {% if devices %}
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Device Code</th>
+                    <th>Equipment Name</th>
+                    <th>Category</th>
+                    <th>Total</th>
+                    <th>Available</th>
+                    <th>Issued</th>
+                    <th>Location</th>
+                    <th>Availability</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for device in devices %}
+
+                <tr>
+                    <td>
+                        <span class="device-code">
+                            {{ device.device_code }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <strong>{{ device.name }}</strong>
+                    </td>
+
+                    <td>{{ device.category }}</td>
+
+                    <td>{{ device.total_quantity }}</td>
+
+                    <td>
+                        <strong class="quantity-available">
+                            {{ device.available_quantity }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        {{ device.total_quantity - device.available_quantity }}
+                    </td>
+
+                    <td>{{ device.location }}</td>
+
+                    <td>
+                        {% if device.available_quantity == 0 %}
+                            <span class="badge danger">Unavailable</span>
+                        {% elif device.available_quantity < device.total_quantity %}
+                            <span class="badge warning">Partially Issued</span>
+                        {% else %}
+                            <span class="badge success">In Stock</span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+        <div class="empty-icon">▣</div>
+        <h3>No equipment found</h3>
+
+        {% if search %}
+            <p>Try another search term or clear your search.</p>
+            <a href="{{ url_for('devices') }}" class="button secondary">
+                Show All Devices
+            </a>
+        {% else %}
+            <p>Add your first laboratory device using the form above.</p>
+        {% endif %}
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

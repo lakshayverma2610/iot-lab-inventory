@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | IoT Lab{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">OVERVIEW</p>
+        <h2>Laboratory Dashboard</h2>
+        <p class="muted">Monitor your equipment, availability and issue records.</p>
+    </div>
+
+    <a href="{{ url_for('issue') }}" class="button primary">
+        + Issue Equipment
+    </a>
+</div>
+
+<div class="welcome-banner">
+    <div>
+        <p class="eyebrow light">IOT LABORATORY</p>
+        <h2>Equipment at a glance</h2>
+        <p>Keep track of laboratory resources in one place.</p>
+    </div>
+    <div class="banner-icon">⌘</div>
+</div>
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Total Equipment</span>
+            <span class="stat-icon blue">▣</span>
+        </div>
+        <h3>{{ total_devices }}</h3>
+        <p>Registered units in inventory</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Available Units</span>
+            <span class="stat-icon green">✓</span>
+        </div>
+        <h3>{{ available_devices }}</h3>
+        <p>Currently available for issue</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Issued Units</span>
+            <span class="stat-icon orange">↗</span>
+        </div>
+        <h3>{{ issued_devices }}</h3>
+        <p>Currently with students</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Overdue Records</span>
+            <span class="stat-icon red">!</span>
+        </div>
+        <h3>{{ overdue_count }}</h3>
+        <p>Past their expected return date</p>
+    </div>
+
+</div>
+
+<div class="section-heading">
+    <div>
+        <h3>Recent Transactions</h3>
+        <p class="muted">The latest equipment issue and return records.</p>
+    </div>
+
+    <a href="{{ url_for('transactions') }}" class="text-link">
+        View all →
+    </a>
+</div>
+
+<div class="table-card">
+    {% if recent_transactions %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Equipment</th>
+                    <th>Quantity</th>
+                    <th>Issue Date</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for transaction in recent_transactions %}
+                <tr>
+                    <td>
+                        <strong>{{ transaction.student.name }}</strong>
+                        <small class="table-subtitle">
+                            {{ transaction.student.student_id }}
+                        </small>
+                    </td>
+
+                    <td>
+                        {{ transaction.device.name }}
+                        <small class="table-subtitle">
+                            {{ transaction.device.device_code }}
+                        </small>
+                    </td>
+
+                    <td>{{ transaction.quantity }}</td>
+                    <td>{{ transaction.issue_date.strftime('%d %b %Y') }}</td>
+                    <td>{{ transaction.due_date.strftime('%d %b %Y') }}</td>
+
+                    <td>
+                        <span class="badge
+                            {% if transaction.status == 'Issued' %}
+                                warning
+                            {% else %}
+                                success
+                            {% endif %}">
+                            {{ transaction.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">☷</div>
+            <h3>No transactions yet</h3>
+            <p>Equipment issue records will appear here once you start issuing devices.</p>
+            <a href="{{ url_for('issue') }}" class="button primary">
+                Create First Issue
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

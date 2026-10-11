@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}IoT Lab Management System{% endblock %}</title>
+
+    <!-- Main CSS Stylesheet -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+
+            <div class="logo">
+                ⚡ IoT Lab
+            </div>
+
+            <p class="logo-subtitle">
+                Equipment Management System
+            </p>
+
+            <nav>
+                <a href="{{ url_for('dashboard') }}"
+                   class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    ▦ Dashboard
+                </a>
+
+                <a href="{{ url_for('devices') }}"
+                   class="{% if request.endpoint == 'devices' %}active{% endif %}">
+                    ▣ Equipment Inventory
+                </a>
+
+                <a href="{{ url_for('students') }}"
+                   class="{% if request.endpoint == 'students' %}active{% endif %}">
+                    ♙ Students
+                </a>
+
+                <a href="{{ url_for('issue') }}"
+                   class="{% if request.endpoint == 'issue' %}active{% endif %}">
+                    ↗ Issue Equipment
+                </a>
+
+                <a href="{{ url_for('transactions') }}"
+                   class="{% if request.endpoint in ['transactions', 'return_device'] %}active{% endif %}">
+                    ⇄ Issue & Return History
+                </a>
+            </nav>
+
+            <div class="footer">
+                IoT Laboratory<br>
+                Inventory Management
+            </div>
+
+        </aside>
+
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Top Header -->
+            <header class="topbar">
+                <div>
+                    <h2>IoT Laboratory Portal</h2>
+                    <p>Equipment and Inventory Management</p>
+                </div>
+
+                <div>
+                    <span class="status-badge status-available">
+                        ● System Online
+                    </span>
+                </div>
+            </header>
+
+
+            <!-- Flash Messages -->
+            <section class="flash-container">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+
+                    {% if messages %}
+
+                        {% for category, message in messages %}
+
+                            <div class="flash flash-{{ category }}">
+                                {{ message }}
+                            </div>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+                {% endwith %}
+
+            </section>
+
+
+            <!-- Individual Page Content -->
+            {% block content %}
+
+            {% endblock %}
+
+
+            <!-- Footer -->
+            <footer class="footer">
+                <p>
+                    © {{ now_year if now_year is defined else 2026 }}
+                    IoT Lab Management System.
+                    Built for efficient laboratory management.
+                </p>
+            </footer>
+
+        </main>
+
+    </div>
+
+</body>
+</html>
